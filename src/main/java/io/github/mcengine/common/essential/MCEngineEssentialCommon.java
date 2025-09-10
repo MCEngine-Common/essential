@@ -1,7 +1,7 @@
 package io.github.mcengine.common.essential;
 
 import io.github.mcengine.api.core.util.MCEngineCoreApiDispatcher;
-import io.github.mcengine.api.essential.database.IMCEngineEssentialDB;
+import io.github.mcengine.common.essential.database.IMCEngineEssentialDB;
 import io.github.mcengine.common.essential.database.mysql.MCEngineEssentialMySQL;
 import io.github.mcengine.common.essential.database.postgresql.MCEngineEssentialPostgreSQL;
 import io.github.mcengine.common.essential.database.sqlite.MCEngineEssentialSQLite;
@@ -9,16 +9,14 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.Plugin;
 
-import java.sql.Connection;
-
 /**
  * The {@code MCEngineEssentialCommon} class provides a lightweight facade for
  * shared "Essential" features. It wires a Bukkit {@link Plugin} instance to the
  * internal command {@link MCEngineCoreApiDispatcher}, so you can register command
  * namespaces, subcommands, and tab completers in a consistent way across the module.
  * <p>
- * Additionally, this class initializes and exposes the Essential database connection
- * via a minimal interface. The database backend is selected using {@code database.type}
+ * Additionally, this class initializes and exposes database helpers via a minimal
+ * interface. The database backend is selected using {@code database.type}
  * with support for {@code sqlite} (default), {@code mysql}, and {@code postgresql}.
  *
  * <p>Usage pattern:
@@ -28,10 +26,9 @@ import java.sql.Connection;
  *   essential.registerSubCommand("essential", "ping", new PingCommand());
  *   plugin.getCommand("essential").setExecutor(essential.getDispatcher("essential"));
  *
- *   // DB usage (connection only)
- *   try (Connection conn = essential.getDBConnection()) {
- *       // Perform your own queries/prepared statements...
- *   }
+ *   // DB usage (helpers)
+ *   essential.executeQuery("CREATE TABLE IF NOT EXISTS example(id INTEGER PRIMARY KEY)");
+ *   Integer count = essential.getValue("SELECT COUNT(*) FROM example", Integer.class);
  * }</pre>
  */
 public class MCEngineEssentialCommon {
@@ -167,11 +164,28 @@ public class MCEngineEssentialCommon {
     }
 
     /**
-     * Retrieves the active SQL database connection being used by the Essential module.
+     * Executes a SQL statement that does not return a result set
+     * through the configured Essential DB backend.
      *
-     * @return JDBC {@link Connection} or {@code null} if the connection couldn't be established
+     * @param sql SQL statement
+     * @throws RuntimeException if execution fails
      */
-    public Connection getDBConnection() {
-        return db.getDBConnection();
+    public void executeQuery(String sql) {
+        db.executeQuery(sql);
+    }
+
+    /**
+     * Executes a SQL query expected to return a single scalar value
+     * through the configured Essential DB backend.
+     *
+     * @param sql  SQL query
+     * @param type target scalar class
+     * @param <T>  type parameter for the coerced result
+     * @return coerced value, or {@code null} if no rows are returned
+     * @throws IllegalArgumentException if {@code type} is unsupported
+     * @throws RuntimeException         if execution fails
+     */
+    public <T> T getValue(String sql, Class<T> type) {
+        return db.getValue(sql, type);
     }
 }
