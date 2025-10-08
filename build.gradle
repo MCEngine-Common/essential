@@ -70,7 +70,7 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.21.8-R0.1-SNAPSHOT'
 
     compileOnly 'com.google.code.gson:gson:2.13.2'
-    compileOnly 'org.mongodb:mongodb-driver-sync:5.6.0'
+    compileOnly 'org.mongodb:mongodb-driver-sync:5.6.1'
 
     // MCEngine API
     compileOnly 'io.github.mcengine:core-api:2025.1.0-9'
